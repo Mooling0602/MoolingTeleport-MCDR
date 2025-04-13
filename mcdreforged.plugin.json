@@ -1,0 +1,16 @@
+{
+    "id": "mooling_teleport",
+    "version": "0.0.1",
+    "name": "MoolingTeleport",
+    "description": {
+      "en_us": "A teleport plugin written by Mooling0602.",
+      "zh_cn": "木泠牌传送插件。"
+    },
+    "author": "Mooling0602",
+    "link": "https://github.com/Mooling0602/MoolingTeleport-MCDR",
+    "dependencies": {
+      "mcdreforged": ">=2.0",
+      "more_command_nodes": ">=1.0"
+    },
+    "entrypoint": "mooling_teleport.entry"
+}
