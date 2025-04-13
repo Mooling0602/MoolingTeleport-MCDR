@@ -35,7 +35,7 @@
 
 `!!tpp accept` 同意他人的传送请求，需要玩家环境
 
-`!!tpp accept` <gameId> 强制某人同意当前收到的传送请求，需要MCDR权限admin及以上或控制台环境
+`!!tpp accept <gameId>` 强制某人同意当前收到的传送请求，需要MCDR权限admin及以上或控制台环境
 > 该指令仍受时效限制
 
 `!!tpp reject` 拒绝他人的传送请求，需要玩家环境
