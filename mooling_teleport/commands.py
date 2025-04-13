@@ -4,7 +4,7 @@ import mooling_teleport.runtime as rt
 
 from mcdreforged.api.all import *
 from mooling_teleport.utils import StrConverter, enable_force_rcon
-from mooling_teleport.help_page import help_info
+from mooling_teleport.help_page import help_info, help_menu, get_back_page
 from mooling_teleport.modules.api import TeleportPosition
 from mooling_teleport.modules.back import BackTeleport
 from mooling_teleport.utils import format_time, change_config_and_save, get_pfxed_message
@@ -20,9 +20,16 @@ def command_register(server: PluginServerInterface):
     builder.register(server)
 
 @builder.command('!!mtp')
-@builder.command('!!mtp help')
 def on_command_plg_main(src: CommandSource, ctx: CommandContext):
     src.reply(help_info)
+
+@builder.command('!!mtp help')
+def on_command_help_menu(src: CommandSource, ctx: CommandContext):
+    src.reply(help_menu)
+
+@builder.command('!!mtp help back')
+def on_command_help_back_page(src: CommandSource, ctx: CommandContext):
+    src.reply(get_back_page(src))
 
 @builder.command('!!mtp debug config show_options')
 def on_list_plugin_configs(src: CommandSource, ctx: CommandContext):
