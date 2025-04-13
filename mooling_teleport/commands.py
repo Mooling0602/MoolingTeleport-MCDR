@@ -72,6 +72,7 @@ def on_plugin_powerwash(src: CommandSource, ctx: CommandContext):
         server.reload_plugin(server.get_self_metadata().id)
     if not src.has_permission(4):
         src.reply("权限不足，需最高权限！")
+        return
     if rt.do_powerwash is False:
         src.reply("将删除插件主配置，若确定，请再执行一遍指令！")
         src.reply("各种坐标数据将会被保留，如有需要请手动删除！")
@@ -82,12 +83,18 @@ def on_plugin_powerwash(src: CommandSource, ctx: CommandContext):
 @builder.command('!!mtp powerwash --confirm')
 @builder.command('!!mtp reset config all --confirm')
 def do_plugin_powerwash(src: CommandSource, ctx: CommandContext):
+    if not src.has_permission(4):
+        src.reply("权限不足，需最高权限！")
+        return
     rt.do_powerwash = True
     on_plugin_powerwash(src, ctx)
 
 @builder.command('!!mtp powerwash --cancel')
 @builder.command('!!mtp reset config all --cancel')
 def cancel_plugin_powerwash(src: CommandSource, ctx: CommandContext):
+    if not src.has_permission(4):
+        src.reply("权限不足，需最高权限！")
+        return
     rt.do_powerwash = False
     src.reply("已取消插件重置条件，若确需重置插件，请重新进行确认流程。")
 
