@@ -8,6 +8,7 @@
 > i18n no plan to do, if need, fork yourself.
 
 - 持续更新，对接其他插件
+- 命令冲突检测及自动修复，避免意外行为
 
 ## 
 
