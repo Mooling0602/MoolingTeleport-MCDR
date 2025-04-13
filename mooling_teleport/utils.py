@@ -1,3 +1,4 @@
+import ast
 import locale
 import json
 import os
@@ -22,6 +23,34 @@ def execute_if(condition: bool | Callable[[], bool]):
             return None
         return wrapper
     return decorator
+
+class StrConverter:
+    def __call__(self, s: str):
+        s = s.strip()
+        lower_s = s.lower()
+        # First, handle booleans explicitly.
+        if lower_s == "true":
+            return True
+        elif lower_s == "false":
+            return False
+        # Try converting to int.
+        try:
+            return int(s)
+        except ValueError:
+            pass
+        # Try converting to float.
+        try:
+            return float(s)
+        except ValueError:
+            pass
+        # Try evaluating as a literal (list, dict, etc.).
+        try:
+            result = ast.literal_eval(s)
+            return result
+        except Exception:
+            pass
+        # Fallback: return the original string.
+        return s
 
 def change_config_and_save(server: PluginServerInterface, option: str, value):
     def get_nested_attr(obj, parts):

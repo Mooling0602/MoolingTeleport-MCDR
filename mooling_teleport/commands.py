@@ -3,7 +3,7 @@ import os
 import mooling_teleport.runtime as rt
 
 from mcdreforged.api.all import *
-from mooling_teleport.utils import enable_force_rcon
+from mooling_teleport.utils import StrConverter, enable_force_rcon
 from mooling_teleport.help_page import help_info
 from mooling_teleport.modules.api import TeleportPosition
 from mooling_teleport.modules.back import BackTeleport
@@ -12,34 +12,6 @@ from mooling_teleport.utils import format_time, change_config_and_save, get_pfxe
 psi = ServerInterface.psi()
 builder = SimpleCommandBuilder()
 
-
-class StrConverter:
-    def __call__(self, s: str):
-        s = s.strip()
-        lower_s = s.lower()
-        # First, handle booleans explicitly.
-        if lower_s == "true":
-            return True
-        elif lower_s == "false":
-            return False
-        # Try converting to int.
-        try:
-            return int(s)
-        except ValueError:
-            pass
-        # Try converting to float.
-        try:
-            return float(s)
-        except ValueError:
-            pass
-        # Try evaluating as a literal (list, dict, etc.).
-        try:
-            result = ast.literal_eval(s)
-            return result
-        except Exception:
-            pass
-        # Fallback: return the original string.
-        return s
 
 def command_register(server: PluginServerInterface):
     builder.arg('num', Integer)
