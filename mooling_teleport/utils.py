@@ -2,6 +2,7 @@ import ast
 import locale
 import json
 import os
+import re
 import mooling_teleport.runtime as rt
 
 from typing import Callable, Any, Optional
@@ -101,6 +102,23 @@ def change_config_and_save(server: PluginServerInterface, option: str, value):
     server.save_config_simple(config=rt.config, file_name='config.yml')
     server.logger.info("已保存对配置项的修改！")
 
+def get_nested_keys(obj: Serializable, prefix=""):
+    """
+    递归获取对象的所有属性键，若属性值为 Serializable（即具有 __dict__ 且不是基础类型）的对象，
+    则继续递归，最终以 "主项.子项" 的格式返回所有键的列表。
+    仅返回没有子项的最终属性键。
+    """
+    keys = []
+    for key, value in vars(obj).items():
+        full_key = f"{prefix}.{key}" if prefix else key
+        # 如果属性 value 具有 __dict__ 且不是常见基础类型时，递归确认子项
+        if hasattr(value, '__dict__') and not isinstance(value, (int, float, str, bool, list, dict)):
+            keys.extend(get_nested_keys(value, full_key))
+        else:
+            keys.append(full_key)
+    return keys
+    
+
 def enable_force_rcon(server: PluginServerInterface):
     rt.config.force_rcon = True
     server.logger.info("Rcon方案支持已启用！")
@@ -161,4 +179,18 @@ def get_uuid(player: str) -> Optional[str]:
         if i.get('name', None) == player:
             uuid = i.get('uuid', None)
             return uuid
+    return None
+
+def check_uuid_valid(uuid: str) -> bool:
+    uuid_regex = re.compile(
+        r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+    )
+    return bool(uuid_regex.match(uuid))
+
+def get_player(uuid: str) -> Optional[str]:
+    usercache = load_json(os.path.join(server_dir, 'usercache.json'))
+    for i in usercache:
+        if i.get('uuid', None) == uuid:
+            player = i.get('name', None)
+            return player
     return None

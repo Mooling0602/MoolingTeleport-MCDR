@@ -3,12 +3,14 @@ import mooling_teleport.runtime as rt
 
 from mcdreforged.api.all import *
 from datetime import datetime
-from mooling_teleport.utils import StrConverter, enable_force_rcon, get_uuid
+from mooling_teleport.utils import StrConverter, enable_force_rcon, get_uuid, check_uuid_valid, get_player, get_nested_keys
 from mooling_teleport.help_page import help_info, help_menu, get_back_page
-from mooling_teleport.modules.api import TeleportPosition, TeleportType
+from mooling_teleport.modules.api import TeleportPosition, TeleportType, Player
 from mooling_teleport.modules.back import BackTeleport, cache_position
 from mooling_teleport.modules.storage import GetDirectory
+from mooling_teleport.modules.tpp import TeleportPlayer
 from mooling_teleport.utils import format_time, change_config_and_save, get_pfxed_message
+from mooling_teleport.task import lock, manage_tpp_requests, stop_manager_thread
 
 psi = ServerInterface.psi()
 builder = SimpleCommandBuilder()
@@ -16,8 +18,9 @@ builder = SimpleCommandBuilder()
 
 def command_register(server: PluginServerInterface):
     builder.arg('num', Integer)
-    builder.arg('option', Text).suggests(lambda: list(vars(rt.config).keys()))
+    builder.arg('option', Text).suggests(lambda: get_nested_keys(rt.config))
     builder.arg('value', Text)
+    builder.arg('player', Text)
     builder.register(server)
 
 @builder.command('!!mtp')
@@ -29,6 +32,8 @@ def on_command_help_menu(src: CommandSource, ctx: CommandContext):
     src.reply(help_menu)
 
 @builder.command('!!mtp help back')
+@builder.command('!!back help')
+@builder.command('!!mooling_teleport:back help')
 def on_command_help_back_page(src: CommandSource, ctx: CommandContext):
     src.reply(get_back_page(src))
 
@@ -51,6 +56,40 @@ def on_print_plugin_command_tree(src: CommandSource, ctx: CommandContext):
 @builder.command('!!mtp debug back tp')
 def on_debug_back_tp(src: CommandSource, ctx: CommandContext):
     src.reply(rt.cached_positions)
+
+@builder.command('!!mtp debug tpp print_requests')
+def on_debug_tpp_requests(src: CommandSource, ctx: CommandContext):
+    src.reply(rt.tpp_requests)
+
+@builder.command('!!mtp debug tpp request_manager')
+@builder.command('!!mtp debug tpp request_manager status')
+def on_debug_tpp_request_manager(src: CommandSource, ctx: CommandContext):
+    if lock.locked():
+        src.reply("请求管理器正在运行")
+    else:
+        src.reply("请求管理器未在运行，超时将不会发生，直至插件被卸载！")
+
+@builder.command('!!mtp debug tpp request_manager start')
+def on_debug_tpp_request_manager_start(src: CommandSource, ctx: CommandContext):
+    if not src.has_permission_higher_than(3):
+        src.reply("权限不足！")
+        return
+    if not lock.locked():
+        manage_tpp_requests()
+        src.reply("已启动请求管理器！")
+    else:
+        src.reply("请求管理器已在运行！")
+
+@builder.command('!!mtp debug tpp request_manager stop')
+def on_debug_tpp_request_manager_stop(src: CommandSource, ctx: CommandContext):
+    if not src.has_permission_higher_than(3):
+        src.reply("权限不足！")
+        return
+    if lock.locked():
+        stop_manager_thread()
+        src.reply("正在关闭请求管理器……")
+    else:
+        src.reply("请求管理器未在运行！")
 
 @builder.command('!!mtp set config <option> <value>')
 def on_set_plugin_config_any(src: CommandSource, ctx: CommandContext):
@@ -115,9 +154,9 @@ def on_command_mtp_use_rcon(src: CommandSource, ctx: CommandContext):
 # 回溯传送主命令
 @builder.command('!!back')
 @builder.command('!!mooling_teleport:back')
-def on_command_back(src: CommandSource, ctx: CommandContext):
+def on_command_back_main(src: CommandSource, ctx: CommandContext):
     if not src.is_player:
-        src.reply("请以玩家身份运行命令！")
+        src.reply(get_back_page(src))
         return
     back = BackTeleport(src.player)
     died_position = back.get_died_latest()
@@ -293,3 +332,116 @@ def on_command_back_clear_confirm(src: CommandSource, ctx: CommandContext):
         src.reply("你没有历史死亡记录，将跳过此步骤。")
     on_command_back_clear_cancel(src, ctx)
     src.reply("操作执行完成，您无法再找回已删除的数据！")
+
+# 玩家间传送主命令
+@builder.command('!!tpp')
+@builder.command('!!mooling_teleport:tpp')
+@builder.command('!!tpp help')
+@builder.command('!!mooling_teleport:tpp help')
+def on_command_tpp_main(src: CommandSource, ctx: CommandContext):
+    src.reply("帮助页暂未完成……")
+
+@builder.command('!!tpp accept')
+def on_command_tpp_accept(src: CommandSource, ctx: CommandContext):
+    if not src.is_player:
+        src.reply("该命令只能由玩家执行！")
+        return
+    teleported = False
+    target_request = None
+    target = None
+    for i in rt.tpp_requests:
+        if check_uuid_valid(i.target):
+            target = Player.by_uuid(i.target)
+        else:
+            target = Player.by_name(i.target)
+        player = Player.by_name(src.player)
+        if target == player:
+            target_request = i
+            if not i.reverse:
+                src.reply("你同意了一个传送到你所在位置的请求，正在执行传送……")
+                TeleportPlayer(i.src).to_another(src.player)
+                src.reply(f"已将玩家{i.src}传送到你所在位置！")
+                teleported = True
+            else:
+                src.reply("你同意了一个将你传送到对方所在位置的请求，正在执行传送……")
+                TeleportPlayer(i.src).to_player_here(src.player)
+                src.reply(f"已将你传送到玩家{i.src}所在位置！")
+                teleported = True
+    if teleported:
+        rt.tpp_requests.remove(target_request)
+    else:
+        src.reply("没有待处理的传送请求（你不能同意自己发出的请求）！")
+
+@builder.command('!!tpp reject')
+def on_command_tpp_reject(src: CommandSource, ctx: CommandContext):
+    if not src.is_player:
+        src.reply("该命令只能由玩家执行！")
+        return
+    rejected = False
+    target = None
+    for i in rt.tpp_requests:
+        if check_uuid_valid(i.target):
+            target = Player.by_uuid(i.target)
+        else:
+            target = Player.by_name(i.target)
+        player = Player.by_name(src.player)
+        if target == player:
+            source = i.src
+            if check_uuid_valid(source):
+                source = get_player(source)
+            rt.tpp_requests.remove(i)
+            src.reply(f"你拒绝了来自玩家{source}的传送请求！")
+            rejected = True
+    if not rejected:
+        src.reply("你没有待处理的传送请求（你不能拒绝自己发出的请求，而应该取消它）！")
+
+@builder.command('!!tpp cancel')
+def on_command_tpp_cancel(src: CommandSource, ctx: CommandContext):
+    if not src.is_player:
+        src.reply("该命令只能由玩家执行！")
+        return
+    cancelled = False
+    source = None
+    for i in rt.tpp_requests:
+        if check_uuid_valid(i.src):
+            source = Player.by_uuid(i.src)
+        else:
+            source = Player.by_name(i.src)
+        player = Player.by_name(src.player)
+        if source == player:
+            target = i.target
+            if check_uuid_valid(target):
+                target = get_player(target)
+            rt.tpp_requests.remove(i)
+            src.reply(f"你已取消发送给玩家{target}的传送请求！")
+            cancelled = True
+    if not cancelled:
+        src.reply("你没有可以取消的传送请求！")
+
+@builder.command('!!tpa')
+@builder.command('!!tpa help')
+def on_command_tpa_main(src: CommandSource, ctx: CommandContext):
+    src.reply("帮助页尚未完成……")
+
+@builder.command('!!tpa <player>')
+def on_command_tpa_player(src: CommandSource, ctx: CommandContext):
+    if not src.is_player:
+        src.reply("该命令只能由玩家执行！")
+        return
+    server = src.get_server().psi()
+    TeleportPlayer(src.player).send_request(ctx['player'])
+    server.tell(ctx['player'], f"[玩家间传送] 玩家{src.player}想要传送到你所处的位置！")
+    src.reply(f"已向玩家{ctx['player']}发送传送请求，对方通过后将把你传送至其所在位置。")
+    src.reply("请注意，在你等待请求被同意的期间，对方的位置可能会有变化。")
+
+@builder.command('!!tph <player>')
+@builder.command('!!tpahere <player>')
+def on_command_tph_player(src: CommandSource, ctx: CommandContext):
+    if not src.is_player:
+        src.reply("该命令只能由玩家执行！")
+        return
+    server = src.get_server().psi()
+    TeleportPlayer(src.player).send_request(ctx['player'], True)
+    server.tell(ctx['player'], f"[玩家间传送] 玩家{src.player}想要把你传送到其所处的位置！")
+    src.reply(f"已向玩家{ctx['player']}发送传送请求，对方通过后将被传送至你所在位置。")
+    src.reply("请注意不要离开你现在所处范围太远，对方无法预期你的位置变化！")

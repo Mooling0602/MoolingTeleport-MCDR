@@ -1,7 +1,8 @@
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 from mcdreforged.api.all import *
-from mooling_teleport.utils import get_api
+from mooling_teleport.utils import get_api, get_uuid, get_player
 from mooling_teleport.modules.data_templates import Position
 
 psi = ServerInterface.psi()
@@ -51,3 +52,18 @@ class TeleportPosition:
 
     def __call__(self, target: str):
         self.server.execute(f"execute in {self.dimension} run tp {target} {self.xyz_pos}")
+
+@dataclass
+class Player:
+    name: str = None
+    uuid: str = None
+
+    @classmethod
+    def by_uuid(cls, uuid: str) -> "Player":
+        name = get_player(uuid)
+        return cls(name=name, uuid=uuid)
+    
+    @classmethod
+    def by_name(cls, name: str) -> "Player":
+        uuid = get_uuid(name)
+        return cls(name=name, uuid=uuid)

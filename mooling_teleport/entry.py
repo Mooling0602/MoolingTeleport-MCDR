@@ -7,6 +7,7 @@ from mooling_teleport.commands import command_register
 from mooling_teleport.modules.storage import GetDirectory
 from mooling_teleport.modules.api import TeleportType, get_position
 from mooling_teleport.utils import enable_force_rcon, get_sorted_data, get_time, get_pfxed_message, load_json, write_to_json
+from mooling_teleport.task import manage_tpp_requests, set_server
 
 builder = SimpleCommandBuilder()
 
@@ -34,6 +35,7 @@ def on_load(server: PluginServerInterface, prev_module):
         on_server_startup(server)
 
 def on_unload(server: PluginServerInterface):
+    rt.unload_plugin = True
     server.say(get_pfxed_message("插件正在卸载，相关功能将无法再使用！"))
 
 def on_server_startup(server: PluginServerInterface):
@@ -44,6 +46,8 @@ def on_server_startup(server: PluginServerInterface):
     if rcon_module.server is None and server.is_rcon_running():
         rcon_module.set_server(server_instance=server)
         server.logger.info("插件的Rcon支持模块已初始化完成！")
+    set_server(server)
+    manage_tpp_requests()
 
 def init_plugin_rcon(server: PluginServerInterface):
     global confirm_request_time

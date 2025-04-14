@@ -9,6 +9,7 @@ class BackOptions(Serializable):
 class ConfigOptions(Serializable):
     force_rcon: bool = False
     non_vanilla_dim_warning: bool = True
+    tpp_requests_timeout: int = 10
     back: BackOptions = BackOptions()
 
 def config_loader(server: PluginServerInterface) -> tuple[bool, ConfigOptions]:
