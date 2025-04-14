@@ -90,4 +90,4 @@ def on_player_death(server: PluginServerInterface, player: str, event: str, cont
                 data.remove(data[i])
     write_to_json(data, storage_path)
     server.logger.info(f"{player} 的死亡位置已记录到 {storage_path}。")
-    server.tell(player, get_pfxed_message("已记录您的本次死亡位置。"))
+    server.tell(player, get_pfxed_message("已记录您的本次死亡位置，可使用!!back快速返回"))

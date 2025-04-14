@@ -155,7 +155,7 @@ def write_to_json(data: dict|list, file_path: str):
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-def get_uuid(player: str) -> str|None:
+def get_uuid(player: str) -> Optional[str]:
     usercache = load_json(os.path.join(server_dir, 'usercache.json'))
     for i in usercache:
         if i.get('name', None) == player:

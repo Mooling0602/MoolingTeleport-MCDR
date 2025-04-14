@@ -1,9 +1,11 @@
 import os
+import mooling_teleport.runtime as rt
 
-from mooling_teleport.utils import get_sorted_data, load_json
+from typing import Optional
+from mooling_teleport.utils import get_sorted_data, get_time, get_uuid, load_json
 from mooling_teleport.modules.storage import GetDirectory
 from mooling_teleport.modules.data_templates import Position
-from mooling_teleport.modules.api import position_list_to_str, TeleportType, TeleportPosition
+from mooling_teleport.modules.api import get_position, TeleportType
 
 
 class BackTeleport:
@@ -15,14 +17,15 @@ class BackTeleport:
             self.died_history_path = died_history_path
         else:
             self.died_history_path = None
-        self.tp = TeleportPosition()
-
-    def go_to_died_latest(self):
+    
+    def get_died_latest(self) -> Optional[Position]:
         raw_data = load_json(self.died_history_path) if self.died_history_path else []
         data = get_sorted_data(raw_data)
         if len(data) > 0:
             record = data[0]
-            self.tp.by_dict_data(record, self.player)
+            position = Position.from_dict(record)
+            return position
+        return None
 
     def get_died_list(self) -> list[Position]:
         data = load_json(self.died_history_path) if self.died_history_path else []
@@ -33,5 +36,22 @@ class BackTeleport:
             result[idx] = position
         return result
 
-    def get_pos_before_cmd(self) -> dict:
-        pass
+    def get_cached_position(self) -> Optional[Position]:
+        uuid = get_uuid(self.player)
+        if uuid is not None:
+            position = rt.cached_positions.get(uuid, None)
+        else:
+            position = rt.cached_positions.get(self.player, None)
+        return position
+
+def cache_position(player: str):
+    position = Position.from_dict(get_position(player))
+    time_data = {}
+    time_data['time'] = get_time(return_str=True)
+    position.other = time_data
+    uuid = get_uuid(player)
+    if uuid is not None:
+        rt.cached_positions[uuid] = position
+    else:
+        rt.cached_positions[player] = position
+
