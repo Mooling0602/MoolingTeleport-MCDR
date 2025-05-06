@@ -41,3 +41,13 @@ def get_back_page(src: CommandSource) -> RTextList:
         RText(f"§7!!back died list §r{message_died_list}")
     )
     return back_page
+
+def get_warp_page() -> RTextList:
+    warp_page = RTextList(
+        RText("# [木泠牌传送] 公共传送帮助信息") + "\n",
+        RText("§7!!warp [help] §r显示此帮助页面") + "\n",
+        RText("§7!!warp <name> §r传送到指定的路标点") + "\n",
+        RText("§7!!warp list §r显示所有路标（仅名称）") + "\n",
+        RText("[!] 目前数据源仅对接了LocationMarker，需要更多功能可以直接使用该插件的命令！")
+    )
+    return warp_page

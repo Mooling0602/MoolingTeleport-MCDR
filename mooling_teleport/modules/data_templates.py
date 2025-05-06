@@ -11,10 +11,10 @@ class Position:
 
     def __post_init__(self):
         if len(self.pos) != 3:
-            raise ValueError('pos is invalid!')
+            raise ValueError('length of the pos is not 3!')
         for i in self.pos:
             if not isinstance(i, float):
-                raise ValueError('pos is incomplete!')
+                self.pos[self.pos.index(i)] = float(i)
         if not isinstance(self.dim, str):
             raise ValueError('dim is invalid!')
         if not self.dim.startswith("minecraft"):
@@ -30,6 +30,8 @@ class Position:
         dim = data.get('dim', data.get('dimension', None))
         if pos is None or dim is None:
             raise ValueError('Dict data is invalid!')
+        if isinstance(pos, dict) and all(k in pos for k in ("x", "y", "z")):
+            pos = [float(pos[k]) for k in ("x", "y", "z")]
         keys_to_exclude = {"pos", "dim", "position", "dimension"}
         other = {k: v for k, v in data.items() if k not in keys_to_exclude}
         return cls(pos=pos, dim=dim, other=other)

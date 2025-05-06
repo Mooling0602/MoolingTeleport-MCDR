@@ -6,20 +6,24 @@
 ## 功能特性
 - 经典的/warp、/home、/back、/tpa使用体验（除了命令前缀不使用/而使用!!）且进行了创新优化
 - 首创使用游戏内物品进行付费传送（开发中，后续新版本推送此功能）
+> 可安装Ender Pearl TP插件先行体验这一功能
+
 - 可在Rcon与Minecraft Data API方案间切换，适合不同服务端环境和使用场景
 - 插件纯中文设计（提示、日志等），对国内服主、玩家友好
 > i18n no plan to do, if need, fork yourself.
 
 - 持续更新，对接其他插件
 - 命令冲突检测及自动修复，避免意外行为
+> 开发中，或需要MCDR 2.15以上特性……
 
 ## 用法
-目前插件没有任何已发布构建，但是你可以自行打包。返回死亡点功能已基本开发完毕。
+目前插件没有任何已发布构建，但是你可以自行打包。大部分功能已基本开发完毕
 
 将插件源码Git下来，在源码根目录执行`mcdreforged pack`即可，你需要确保MCDReforged已正确安装到了你的环境中。
 
 ## 注意事项
 请确保服务器内不存在且不会存在重名玩家，受MCDR的工作原理限制，如果玩家重名，插件将无法正常工作。
+> 插件目前在工作时混用UUID和玩家名，且存储数据时以UUID为主，但根本依据还是玩家名
 
 不会受理任何与此相关的Issues！
 
@@ -27,12 +31,13 @@
 
 ### 前缀指定功能
 可以在配置文件中启用命令注册兼容模式，用插件ID做前缀注册命令或修改命令本身，以避免和其他插件冲突导致功能无法使用。
+> 开发中……
 
 ### 用法
-`!!mtp` 显示插件总帮助页面
+`!!mtp` 显示插件总帮助页面，代码块样式为已开发完成的命令/功能。
 > 使用`!!mtp help [<module>]`获取详细的插件命令帮助！
 
-`!!tp <x> <y> <z> [<dimension>]` 传送到指定坐标处，默认按配置文件相关选项向执行的玩家扣费，需要玩家环境
+!!tp <x> <y> <z> [<dimension>] 传送到指定坐标处，默认按配置文件相关选项向执行的玩家扣费，需要玩家环境
 
 #### 玩家间传送
 `!!tpp` 玩家间传送（显示帮助）
@@ -40,26 +45,26 @@
 
 `!!tpp accept` 同意他人的传送请求，需要玩家环境
 
-`!!tpp accept <gameId>` 强制某人同意当前收到的传送请求，需要MCDR权限admin及以上或控制台环境
+!!tpp accept <player> 强制某人同意当前收到的传送请求，需要MCDR权限admin及以上或控制台环境
 > 该指令仍受时效限制
 
 `!!tpp reject` 拒绝他人的传送请求，需要玩家环境
 
-`!!tpp reject <gameId>` 强制某人拒绝当前收到的传送请求，需要MCDR权限admin及以上或控制台环境
+!!tpp reject <player> 强制某人拒绝当前收到的传送请求，需要MCDR权限admin及以上或控制台环境
 > 该指令仍受时效限制
 
 `!!tpp cancel` 取消已发送传送请求
 
-`!!tpp cancel <gameId>` 强制取消某人当前发出的传送请求，需要MCDR权限admin及以上或控制台环境
+!!tpp cancel <player> 强制取消某人当前发出的传送请求，需要MCDR权限admin及以上或控制台环境
 > 该命令仍受时效限制
 
-`!!tpp ban <gameId>` 屏蔽某人的传送请求
+!!tpp ban <player> 屏蔽某人的传送请求
 > 若在控制台执行，则目标玩家将无法向任意其他玩家发起传送请求！
 
-`!!tpp pardon <gameId>` 取消屏蔽某人的传送请求
+!!tpp pardon <player> 取消屏蔽某人的传送请求
 > 若在控制台屏蔽过某位玩家，则可以且只可以在控制台执行此命令进行恢复
 
-`!!tpp whitelist <gameId>` 使某人始终能向自己发起传送请求
+!!tpp whitelist <player> 使某人始终能向自己发起传送请求
 > 若在控制台执行，则该玩家将无视其他玩家的个人设置，向他们发起传送请求（但可被拒绝，除非该玩家以管理员权限附加了--force参数）
 
 `!!tpa` 传送到其他玩家（显示帮助）
@@ -67,80 +72,83 @@
 
 `!!tpa <gameId>` 请求将自己传送到某位玩家所在的位置，需要玩家环境
 
-`!!tpa <gameId> --force` 强制将自己传送到某位玩家所在的位置，需要MCDR权限admin及以上
+!!tpa <gameId> --force 强制将自己传送到某位玩家所在的位置，需要MCDR权限admin及以上
 
 `!!tph` 让其他玩家传送过来（显示帮助）
 > 同`!!tph help`或`!!mtp help tph`
 
 `!!tph <gameId>` 请求某位玩家传送到自己所在的位置，需要玩家环境
 
-`!!tph <gameId> --force` 强制将某位玩家传送到自己所在的位置，需要MCDR权限admin及以上
+!!tph <gameId> --force 强制将某位玩家传送到自己所在的位置，需要MCDR权限admin及以上
 
 #### 私有传送
-`!!home` 私有传送点管理（显示帮助）
-> 同`!!home help`或`!!mtp help home`
+!!home 私有传送点管理（显示帮助）
+> 同!!home help或!!mtp help home
 
-`!!home add <name>` 添加一个私有传送点，需要指定名称且不能和已有的重复，需要玩家环境
+!!home add <name> 添加一个私有传送点，需要指定名称且不能和已有的重复，需要玩家环境
 
-`!!home remove <name>` 移除一个私有传送点，需要指定有效的名称，需要玩家环境
+!!home remove <name> 移除一个私有传送点，需要指定有效的名称，需要玩家环境
 
-`!!home list` 列出自己当前已添加的所有传送点，需要玩家环境
+!!home list 列出自己当前已添加的所有传送点，需要玩家环境
 
-`!!home list <gameId>` 列出某位玩家添加的所有他私有的传送点，需要MCDR权限admin及以上或控制台环境，或者经过授权
+!!home list <player> 列出某位玩家添加的所有他私有的传送点，需要MCDR权限admin及以上或控制台环境，或者经过授权
 
-`!!home info <name>` 查看某个私有传送点的详细信息，需要指定有效的名称和玩家环境
+!!home info <name> 查看某个私有传送点的详细信息，需要指定有效的名称和玩家环境
 
-`!!home info <gameId> <name>` 查看某个玩家的某个私有传送点的详细信息，需要指定有效的名称，需要MCDR权限admin以上或控制台环境，或者经过授权
+!!home info <player> <name> 查看某个玩家的某个私有传送点的详细信息，需要指定有效的名称，需要MCDR权限admin以上或控制台环境，或者经过授权
 
-`!!home goto <name> / !!home <name>` 将自己传送到已添加的私有传送点，需要指定有效的名称，需要玩家环境
+!!home go <name> / !!home <name> 将自己传送到已添加的私有传送点，需要指定有效的名称，需要玩家环境
 
-`!!home public <name>` 将一个私有传送点共享出去变成一个公共传送点，需要指定有效的名称，需要玩家环境
+!!home public <name> 将一个私有传送点共享出去变成一个公共传送点，需要指定有效的名称，需要玩家环境
 
-`!!home share <gameId> <name>` 将一个私有传送点共享给某位玩家，需要指定有效的名称，需要玩家环境
+!!home share <player> <name> 将一个私有传送点共享给某位玩家，需要指定有效的名称，需要玩家环境
 
-`!!home allow <gameId>` 使某位玩家可以访问自己的私有传送点，需要指定正确的玩家名（游戏ID），需要玩家环境
+!!home allow <player> 使某位玩家可以访问自己的私有传送点，需要指定正确的玩家名（游戏ID），需要玩家环境
 > 授权后玩家需要指定玩家名（游戏ID）以访问他的私有传送点，见相关指令的介绍
 
-`!!home receive <gameId>` 处理某位玩家共享给自己的私有传送点，需要指定正确的玩家名（游戏ID），需要玩家环境
+!!home receive <player> 处理某位玩家共享给自己的私有传送点，需要指定正确的玩家名（游戏ID），需要玩家环境
 
-`!!home receive <gameId> --ask-me` 功能同上一条命令，但使用交互式提示模式，需要玩家环境
+!!home receive <player> --ask-me 功能同上一条命令，但使用交互式提示模式，需要玩家环境
 > 进入此模式后不能发送无关内容到聊天栏，否则会意外的应用错误的信息！
 >
 > 插件将显示接收到的传送点名称以及和现有传送点的冲突情况，若冲突会自动推荐一个可用名称
 >
 > 发送y以应用变更，或直接发送想设置的名称以应用；使用#做前缀以指定这是想设置的名称，适用于想以y做名称的情况（如果想将名称设置为#y，则使用##y，以此类推）
 
-`!confirm` / `!mtp:confirm` / `!mooling_teleport:confirm` 确认保存来自其他玩家的最终的传送点信息，需要玩家环境
+!confirm / !mtp:confirm / !mooling_teleport:confirm 确认保存来自其他玩家的最终的传送点信息，需要玩家环境
 
-`!set_name <name>` / `!mtp:set_name <name>` / `!mooling_teleport:set_name <name>` 修改接收到的传送点名称信息，一般在和已有传送点重名时使用，插件会自动推荐一个可用名称，需要玩家环境
+!set_name <name> / !mtp:set_name <name> / !mooling_teleport:set_name <name> 修改接收到的传送点名称信息，一般在和已有传送点重名时使用，插件会自动推荐一个可用名称，需要玩家环境
 
 #### 公共传送
 `!!warp` 公共传送点管理（显示帮助）
 > 同`!!warp help`或`!!mtp help warp`
 
-`!warp_with_loc` / `!mtp:warp_with_loc` / `!mooling_teleport:warp_with_loc` 使用location_marker的waypoint数据作为公共传送点，需MCDR权限owner及以上或控制台环境
+!warp_with_loc / !mtp:warp_with_loc / !mooling_teleport:warp_with_loc 使用location_marker的waypoint数据作为公共传送点，需MCDR权限owner及以上或控制台环境
 > 用途：木泠牌传送暂不支持小地图模组，而Location Marker则支持
 >
 > 执行后，添加公共传送点的权限检查将取消
 >
 > 该指令会修改相关配置，只推荐在首次使用插件时使用，否则插件可能会发出警告
 
-`!!warp add <name>` 添加一个公共传送点，需要玩家环境
-> 也可以使用`!!warp add <name> here`
+!!warp add <name> 添加一个公共传送点，需要玩家环境
+> 也可以使用!!warp add <name> here
 >
-> 若对接location_marker，则等同于执行`!!loc add <name> here`
+> 若对接location_marker，则等同于执行!!loc add <name> here
 
-`!!warp add <name> <x> <y> <z>` 根据坐标添加一个公共传送点
-> 若对接location_marker，则等同于执行`!!loc add <name> <x> <y> <z>`
+!!warp add <name> <x> <y> <z> 根据坐标添加一个公共传送点
+> 若对接location_marker，则等同于执行!!loc add <name> <x> <y> <z>
 
-`!!warp remove <name>` 移除一个公共传送点，MCDR权限admin以下玩家执行将会向MCDR权限admin及以上玩家和控制台发出请求，只有被同意了之后才能完成移除
+!!warp remove <name> 移除一个公共传送点，MCDR权限admin以下玩家执行将会向MCDR权限admin及以上玩家和控制台发出请求，只有被同意了之后才能完成移除
 > 可在配置文件配置是否允许普通玩家请求移除公共传送点、请求的时效等
 >
 > 该命令在对接location_marker时不可用
 
+`!!warp <name>` / `!!warp go <name>` 将自己传送到指定的公共传送点，需要玩家环境
+> 目前仅开发完成了对接Location Marker的模式，因此使用Location Marker的数据
+
 `!!warp list` 列出所有的公共传送点
 
-`!!warp info <name>` 查看某个公共传送点的详细信息，需要指定有效的名称
+!!warp info <name> 查看某个公共传送点的详细信息，需要指定有效的名称
 > 若对接location_marker，则无法支持查看该传送点的创建日期
 
 #### 回溯传送
@@ -166,7 +174,7 @@
 >
 > 将要求二次确认，除非使用了可选的确认或取消参数
 
-`!!back clear <player> [--confirm|--cancel]` 清空某个玩家和传送相关的历史记录，需要MCDR权限admin及以上或控制台环境
+!!back clear <player> [--confirm|--cancel] 清空某个玩家和传送相关的历史记录，需要MCDR权限admin及以上或控制台环境
 > 此操作将直接删除相关数据文件，无法撤销！
 >
 > 将要求二次确认，除非使用了可选的确认或取消参数
@@ -174,14 +182,14 @@
 > 开发中内容，将于首个正式版以后完成
 
 #### 调试用
-`!!mtp debug getpos <player>` 检查插件是否能够获取到某位玩家的位置数据，需要目标玩家在线
+!!mtp debug getpos <player> 检查插件是否能够获取到某位玩家的位置数据，需要目标玩家在线
 > 如果能获取，则返回“检查通过”，否则将返回失败原因及或许可行的解决方案
 >
 > MCDR权限admin及以上和控制台环境，会返回玩家的详细位置数据，包括维度和坐标
 > 
 > 若玩家实际不在线，则返回的结果可能不具有任何参考价值
 
-`!!mtp debug checkonline <player>` 检查某位玩家的在线情况，需要目标玩家在线
+!!mtp debug checkonline <player> 检查某位玩家的在线情况，需要目标玩家在线
 > 若玩家实际不在线，则返回的结果可能不具有任何参考价值
 
 ## 特色功能
