@@ -12,6 +12,7 @@ from mooling_teleport.modules.api import TeleportPosition, TeleportType, Player,
 from mooling_teleport.modules.back import BackTeleport
 from mooling_teleport.modules.storage import GetDirectory
 from mooling_teleport.modules.tpp import TeleportPlayer
+from mooling_teleport.modules.warp_with_loc import LocationMarkerTeleport
 from mooling_teleport.utils import format_time, change_config_and_save, get_pfxed_message
 from mooling_teleport.task import lock, manage_tpp_requests, stop_manager_thread
 
@@ -76,6 +77,7 @@ def command_register(server: PluginServerInterface):
     builder.arg('option', Text).suggests(lambda: get_nested_keys(rt.config))
     builder.arg('value', Text)
     builder.arg('player', Text)
+    builder.arg('name', Text)
     builder.register(server)
 
 @builder.command('!!mtp')
@@ -505,3 +507,31 @@ def on_command_tph_player(src: CommandSource, ctx: CommandContext):
     server.tell(ctx['player'], f"[玩家间传送] 玩家{src.player}想要把你传送到其所处的位置！")
     src.reply(f"已向玩家{ctx['player']}发送传送请求，对方通过后将被传送至你所在位置。")
     src.reply("请注意不要离开你现在所处范围太远，对方无法预期你的位置变化！")
+
+@builder.command('!!warp')
+@builder.command('!!warp help')
+def on_command_warp(src: CommandSource, ctx: CommandContext):
+    src.reply(get_warp_page())
+
+@builder.command('!!warp list')
+def on_command_warp_list(src: CommandSource, ctx: CommandContext):
+    src.reply("下面是LocationMarker的所有路标（名称）：")
+    try:
+        locnames = LocationMarkerTeleport().get_locname_list()
+        for i in locnames:
+            src.reply(f"- {i}")
+    except Exception as e:
+        src.reply("读取时发生错误：")
+        src.reply(e)
+
+@builder.command('!!warp <name>')
+def on_command_warp_name(src: CommandSource, ctx: CommandContext):
+    if not src.is_player:
+        src.reply("该命令只能由玩家执行！")
+        return
+    location = LocationMarkerTeleport().get_location(ctx['name'])
+    if location is not None:
+        src.reply(get_pfxed_message("该路标点存在，正在将你传送至指定位置……"))
+        position = location.position
+        TeleportPosition().by_class_position(position, src.player)
+        src.reply(get_pfxed_message("传送执行完成！"))
