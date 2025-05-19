@@ -1,12 +1,15 @@
 import os
 import mooling_teleport.runtime as rt
 
-from mcdreforged.api.all import *
 from datetime import datetime
-from mooling_teleport.utils import StrConverter, enable_force_rcon, get_uuid, check_uuid_valid, get_player, get_nested_keys
+from enum import Enum
+from mcdreforged.api.all import *
+from mcdreforged.api.command import *
+from mcdreforged.plugin.plugin_registry import PluginCommandHolder
+from mooling_teleport.utils import StrConverter, enable_force_rcon, get_uuid, check_uuid_valid, get_player, get_nested_keys, write_to_json
 from mooling_teleport.help_page import help_info, help_menu, get_back_page
-from mooling_teleport.modules.api import TeleportPosition, TeleportType, Player
-from mooling_teleport.modules.back import BackTeleport, cache_position
+from mooling_teleport.modules.api import TeleportPosition, TeleportType, Player, cache_position
+from mooling_teleport.modules.back import BackTeleport
 from mooling_teleport.modules.storage import GetDirectory
 from mooling_teleport.modules.tpp import TeleportPlayer
 from mooling_teleport.utils import format_time, change_config_and_save, get_pfxed_message
@@ -15,6 +18,58 @@ from mooling_teleport.task import lock, manage_tpp_requests, stop_manager_thread
 psi = ServerInterface.psi()
 builder = SimpleCommandBuilder()
 
+
+class NodeTypes(Enum):
+    LITERAL = Literal
+    NUMBER = Number
+    INTEGER = Integer
+    FLOAT = Float
+    TEXT = Text
+    QUOTABLE_TEXT = QuotableText
+    GREEDY_TEXT = GreedyText
+    BOOLEAN = Boolean
+    ENUMERATION = Enumeration
+
+class Node:
+    def __init__(self, name: str, node: AbstractNode):
+        self.name = name
+        self.type = None
+        self.children = []
+
+        # get type
+        try:
+            self.type = NodeTypes(node.__class__)
+        except ValueError:
+            self.type = NodeTypes.TEXT
+
+        # Literal children
+        for literal, literal_children in node._children_literal.items():
+            self.children.append(Node(literal, literal_children[0]))
+
+        # Argument children
+        for argument_child in node._children:
+            self.children.append(
+                Node(
+                    argument_child._ArgumentNode__name,
+                    argument_child
+                )
+            )
+
+    @property
+    def dict(self):
+        return {
+            'name': self.name,
+            'type': self.type.name,
+            'children': [i.dict for i in self.children]
+        }
+
+def get_node_json():
+    root_nodes = rt.mcdr_server.command_manager.root_nodes
+    json_data = []
+    for key, value in root_nodes.items():
+        plugin_command_holder: PluginCommandHolder = value[0]
+        json_data.append(Node(key, plugin_command_holder.node).dict)
+    return json_data
 
 def command_register(server: PluginServerInterface):
     builder.arg('num', Integer)
@@ -52,6 +107,11 @@ def on_print_plugin_config_option(src: CommandSource, ctx: CommandContext):
 @builder.command('!!mtp debug command print_tree')
 def on_print_plugin_command_tree(src: CommandSource, ctx: CommandContext):
     builder.print_tree(src.reply)
+
+@builder.command('!!mtp debug command dump_all_data')
+def on_print_plugin_command_json(src: CommandSource, ctx: CommandContext):
+    result = get_node_json()
+    write_to_json(result, 'mcdr_commands.json')
 
 @builder.command('!!mtp debug back tp')
 def on_debug_back_tp(src: CommandSource, ctx: CommandContext):

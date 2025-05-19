@@ -21,6 +21,7 @@ def on_load(server: PluginServerInterface, prev_module):
     init_status, config = config_loader(server)
     rt.init_status = init_status
     rt.config = config
+    rt.set_mcdr_server(server)
     server.logger.info("正在注册死亡事件监听器……")
     server.register_event_listener("PlayerDeathEvent", on_player_death)
     server.logger.info("正在注册插件命令......")

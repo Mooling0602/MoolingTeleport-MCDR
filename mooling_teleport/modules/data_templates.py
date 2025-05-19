@@ -14,7 +14,11 @@ class Position:
             raise ValueError('pos is invalid!')
         for i in self.pos:
             if not isinstance(i, float):
-                raise ValueError('pos is incomplete!')
+                try:
+                    idx = self.pos.index(i)
+                    self.pos[idx] = float(i)
+                except Exception as e:
+                    psi.logger.error(f"error reading position data: {e}")
         if not isinstance(self.dim, str):
             raise ValueError('dim is invalid!')
         if not self.dim.startswith("minecraft"):

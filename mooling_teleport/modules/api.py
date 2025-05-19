@@ -1,8 +1,10 @@
+import mooling_teleport.runtime as rt
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 from mcdreforged.api.all import *
-from mooling_teleport.utils import get_api, get_uuid, get_player
+from mooling_teleport.utils import get_api, get_time, get_uuid, get_player
 from mooling_teleport.modules.data_templates import Position
 
 psi = ServerInterface.psi()
@@ -26,6 +28,18 @@ def position_list_to_str(position: list) -> str:
     y = position[1]
     z = position[2]
     return f"{x} {y} {z}"
+
+@new_thread('CachePos(mooling_teleport)')
+def cache_position(player: str):
+    position = Position.from_dict(get_position(player))
+    time_data = {}
+    time_data['time'] = get_time(return_str=True)
+    position.other = time_data
+    uuid = get_uuid(player)
+    if uuid is not None:
+        rt.cached_positions[uuid] = position
+    else:
+        rt.cached_positions[player] = position
 
 class TeleportType(Enum):
     Back = "back"

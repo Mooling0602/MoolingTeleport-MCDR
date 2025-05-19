@@ -2,10 +2,10 @@ import os
 import mooling_teleport.runtime as rt
 
 from typing import Optional
-from mooling_teleport.utils import get_sorted_data, get_time, get_uuid, load_json
+from mooling_teleport.utils import get_sorted_data, get_uuid, load_json
 from mooling_teleport.modules.storage import GetDirectory
 from mooling_teleport.modules.data_templates import Position
-from mooling_teleport.modules.api import get_position, TeleportType
+from mooling_teleport.modules.api import TeleportType
 
 
 class BackTeleport:
@@ -43,15 +43,4 @@ class BackTeleport:
         else:
             position = rt.cached_positions.get(self.player, None)
         return position
-
-def cache_position(player: str):
-    position = Position.from_dict(get_position(player))
-    time_data = {}
-    time_data['time'] = get_time(return_str=True)
-    position.other = time_data
-    uuid = get_uuid(player)
-    if uuid is not None:
-        rt.cached_positions[uuid] = position
-    else:
-        rt.cached_positions[player] = position
 
