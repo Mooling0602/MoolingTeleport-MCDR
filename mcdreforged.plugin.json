@@ -14,5 +14,5 @@
     },
     "entrypoint": "mooling_teleport.entry",
     "resources": ["lang"],
-    "modperm": true
+    "modperms": true
 }
