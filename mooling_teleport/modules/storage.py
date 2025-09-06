@@ -1,8 +1,8 @@
 import os
 
 from mcdreforged.api.all import ServerInterface
-from mooling_teleport.utils import get_uuid
 from mooling_teleport.modules.api import TeleportType
+from mooling_teleport.utils.uuid import get_uuid
 
 psi = ServerInterface.psi()
 config_dir = psi.get_data_folder()

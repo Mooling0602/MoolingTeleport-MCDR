@@ -1,11 +1,11 @@
-import time
 import threading
-import mooling_teleport.runtime as rt
-
+import time
 from typing import Optional
-from mcdreforged.api.all import PluginServerInterface, new_thread
-from mooling_teleport.utils import get_time, get_player, check_uuid_valid
 
+import mooling_teleport.runtime as rt
+from mcdreforged.api.all import PluginServerInterface, new_thread
+from mooling_teleport.utils import get_time
+from mooling_teleport.utils.uuid import check_uuid_valid, get_player
 
 lock = threading.Lock()
 close_manager = False

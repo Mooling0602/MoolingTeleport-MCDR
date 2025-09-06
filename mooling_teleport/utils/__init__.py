@@ -1,13 +1,11 @@
 import ast
-import locale
 import json
-import os
-import re
-import mooling_teleport.runtime as rt
-
-from typing import Callable, Any, Optional
+import locale
 from datetime import datetime, timezone
-from mcdreforged.api.all import ServerInterface, PluginServerInterface, Serializable
+from typing import Any, Callable, Optional
+
+import mooling_teleport.runtime as rt
+from mcdreforged.api.all import PluginServerInterface, Serializable, ServerInterface
 
 psi = ServerInterface.psi()
 server_dir = psi.get_mcdr_config().get("working_directory")
@@ -192,30 +190,3 @@ def load_json(file_path: str) -> dict | list:
 def write_to_json(data: dict | list, file_path: str):
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
-
-
-def get_uuid(player: str) -> Optional[str]:
-    # noinspection SpellCheckingInspection
-    usercache = load_json(os.path.join(server_dir, "usercache.json"))
-    for i in usercache:
-        if i.get("name", None) == player:
-            uuid = i.get("uuid", None)
-            return uuid
-    return None
-
-
-def check_uuid_valid(uuid: str) -> bool:
-    uuid_regex = re.compile(
-        r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-    )
-    return bool(uuid_regex.match(uuid))
-
-
-def get_player(uuid: str) -> Optional[str]:
-    # noinspection SpellCheckingInspection
-    usercache = load_json(os.path.join(server_dir, "usercache.json"))
-    for i in usercache:
-        if i.get("uuid", None) == uuid:
-            player = i.get("name", None)
-            return player
-    return None

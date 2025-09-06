@@ -1,11 +1,12 @@
-import mooling_teleport.runtime as rt
-
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
+
+import mooling_teleport.runtime as rt
 from mcdreforged.api.all import ServerInterface, new_thread
-from mooling_teleport.utils import get_api, get_time, get_uuid, get_player
 from mooling_teleport.modules.data_templates import Position
+from mooling_teleport.utils import get_api, get_time
+from mooling_teleport.utils.uuid import get_player, get_uuid
 
 psi = ServerInterface.psi()
 

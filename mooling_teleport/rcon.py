@@ -1,5 +1,5 @@
-from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional, Union
 
 server = None
 
@@ -27,7 +27,7 @@ def query_rcon_result(command: str) -> str:
 
 
 # noinspection SpellCheckingInspection
-def get_player_info(player: str, argu: str) -> Optional[list, str]:
+def get_player_info(player: str, argu: str) -> Optional[Union[list, str]]:
     if argu == "Pos":
         resp = query_rcon_result(f"data get entity {player} Pos")
         # resp = "CleMooling has the following entity data: [315.5d, 64.0d, -302.5d]"

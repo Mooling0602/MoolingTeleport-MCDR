@@ -1,9 +1,10 @@
-import mooling_teleport.runtime as rt
-
 from dataclasses import dataclass, field
 from datetime import datetime
-from mcdreforged.api.all import ServerInterface, PluginServerInterface
-from mooling_teleport.utils import get_time, get_uuid
+
+import mooling_teleport.runtime as rt
+from mcdreforged.api.all import PluginServerInterface, ServerInterface
+from mooling_teleport.utils import get_time
+from mooling_teleport.utils.uuid import get_uuid
 
 
 class TeleportPlayer:

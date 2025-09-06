@@ -1,23 +1,24 @@
 import os
-import mooling_teleport.runtime as rt
-
 from typing import Optional
-from mooling_teleport.utils import get_sorted_data, get_uuid, load_json
-from mooling_teleport.modules.storage import GetDirectory
-from mooling_teleport.modules.data_templates import Position
+
+import mooling_teleport.runtime as rt
 from mooling_teleport.modules.api import TeleportType
+from mooling_teleport.modules.data_templates import Position
+from mooling_teleport.modules.storage import GetDirectory
+from mooling_teleport.utils import get_sorted_data, load_json
+from mooling_teleport.utils.uuid import get_uuid
 
 
 class BackTeleport:
     def __init__(self, player: str):
         self.player = player
         self.storage_dir = GetDirectory(TeleportType.Back).private(self.player)
-        died_history_path = os.path.join(self.storage_dir, 'died_history.json')
+        died_history_path = os.path.join(self.storage_dir, "died_history.json")
         if os.path.exists(died_history_path):
             self.died_history_path = died_history_path
         else:
             self.died_history_path = None
-    
+
     def get_died_latest(self) -> Optional[Position]:
         raw_data = load_json(self.died_history_path) if self.died_history_path else []
         data = get_sorted_data(raw_data)
@@ -43,4 +44,3 @@ class BackTeleport:
         else:
             position = rt.cached_positions.get(self.player, None)
         return position
-
