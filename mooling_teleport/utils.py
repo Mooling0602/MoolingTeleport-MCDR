@@ -7,10 +7,10 @@ import mooling_teleport.runtime as rt
 
 from typing import Callable, Any, Optional
 from datetime import datetime, timezone
-from mcdreforged.api.all import *
+from mcdreforged.api.all import ServerInterface, PluginServerInterface, Serializable
 
 psi = ServerInterface.psi()
-server_dir = psi.get_mcdr_config().get('working_directory')
+server_dir = psi.get_mcdr_config().get("working_directory")
 
 
 # Usage: @execute_if(lambda: bool | Callable -> bool)
@@ -22,8 +22,11 @@ def execute_if(condition: bool | Callable[[], bool]):
             if actual_condition:
                 return func(*args, **kwargs)
             return None
+
         return wrapper
+
     return decorator
+
 
 class StrConverter:
     def __call__(self, s: str):
@@ -45,6 +48,7 @@ class StrConverter:
         except ValueError:
             pass
         # Try evaluating as a literal (list, dict, etc.).
+        # noinspection PyBroadException
         try:
             result = ast.literal_eval(s)
             return result
@@ -53,20 +57,21 @@ class StrConverter:
         # Fallback: return the original string.
         return s
 
+
 def change_config_and_save(server: PluginServerInterface, option: str, value):
-    def get_nested_attr(obj, parts):
+    def get_nested_attr(obj, _parts):
         """递归获取嵌套属性"""
-        if len(parts) == 1:
-            return obj, parts[0]
-        next_obj = getattr(obj, parts[0], None)
+        if len(_parts) == 1:
+            return obj, _parts[0]
+        next_obj = getattr(obj, _parts[0], None)
         if next_obj is None:
             return None, None
-        return get_nested_attr(next_obj, parts[1:])
+        return get_nested_attr(next_obj, _parts[1:])
 
     server.logger.warning(f"正在将插件配置项 {option} 的值修改为 {value}")
 
     # 分割配置路径
-    parts = option.split('.')
+    parts = option.split(".")
     if len(parts) == 0:
         server.logger.error("无效的配置路径！")
         return
@@ -98,9 +103,12 @@ def change_config_and_save(server: PluginServerInterface, option: str, value):
         return
 
     # 保存配置
-    server.logger.info(f"配置修改成功：{option} §c{old_value}§r -> §a{converted_value}§r")
-    server.save_config_simple(config=rt.config, file_name='config.yml')
+    server.logger.info(
+        f"配置修改成功：{option} §c{old_value}§r -> §a{converted_value}§r"
+    )
+    server.save_config_simple(config=rt.config, file_name="config.yml")
     server.logger.info("已保存对配置项的修改！")
+
 
 def get_nested_keys(obj: Serializable, prefix=""):
     """
@@ -112,85 +120,102 @@ def get_nested_keys(obj: Serializable, prefix=""):
     for key, value in vars(obj).items():
         full_key = f"{prefix}.{key}" if prefix else key
         # 如果属性 value 具有 __dict__ 且不是常见基础类型时，递归确认子项
-        if hasattr(value, '__dict__') and not isinstance(value, (int, float, str, bool, list, dict)):
+        if hasattr(value, "__dict__") and not isinstance(
+            value, (int, float, str, bool, list, dict)
+        ):
             keys.extend(get_nested_keys(value, full_key))
         else:
             keys.append(full_key)
     return keys
-    
+
 
 def enable_force_rcon(server: PluginServerInterface):
     rt.config.force_rcon = True
     server.logger.info("Rcon方案支持已启用！")
-    server.save_config_simple(rt.config, 'config.yml')
+    server.save_config_simple(rt.config, "config.yml")
     server.logger.info("已保存相关配置！")
 
-def get_time(return_str: Optional[bool] = False) -> datetime|str:
+
+def get_time(return_str: Optional[bool] = False) -> datetime | str:
     if not return_str:
         return datetime.now(timezone.utc)
     else:
         return datetime.now(timezone.utc).isoformat()
-    
+
+
+# noinspection SpellCheckingInspection
 def get_pfxed_message(text: str, pfx: str = "[木泠牌传送] ") -> str:
     return pfx + text
 
+
 def get_time_styled() -> str:
     now = datetime.now()
-    if psi.get_mcdr_language() == 'zh_cn':
-        locale.setlocale(locale.LC_TIME, 'zh_CN.UTF-8')
+    if psi.get_mcdr_language() == "zh_cn":
+        locale.setlocale(locale.LC_TIME, "zh_CN.UTF-8")
     return now.astimezone().strftime("%Y年%m月%d日 %H:%M:%S %A")
+
 
 def format_time(time: str) -> str:
     try:
         time = datetime.fromisoformat(time)
-        if psi.get_mcdr_language() == 'zh_cn':
-            locale.setlocale(locale.LC_TIME, 'zh_CN.UTF-8')
+        if psi.get_mcdr_language() == "zh_cn":
+            locale.setlocale(locale.LC_TIME, "zh_CN.UTF-8")
         return time.astimezone().strftime("%Y年%m月%d日 %H:%M:%S %A")
     except ValueError:
         raise ValueError("Invalid time format. Expected ISO 8601 format.")
 
+
 def get_api():
     if rt.config.force_rcon is True:
         import mooling_teleport.rcon as api
+
         return api
     else:
         try:
-            import minecraft_data_api as api # type: ignore
+            import minecraft_data_api as api  # type: ignore
         except ModuleNotFoundError:
             import mooling_teleport.rcon as api
         return api
 
+
 def get_sorted_data(data: list) -> list:
-    sorted_data = sorted(data, key=lambda x: x['time'], reverse=True)
+    sorted_data = sorted(data, key=lambda x: x["time"], reverse=True)
     return sorted_data
 
-def load_json(file_path: str) -> dict|list:
-    with open(file_path, 'r') as f:
+
+def load_json(file_path: str) -> dict | list:
+    with open(file_path, "r") as f:
         data = json.load(f)
     return data
 
-def write_to_json(data: dict|list, file_path: str):
+
+def write_to_json(data: dict | list, file_path: str):
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
+
 def get_uuid(player: str) -> Optional[str]:
-    usercache = load_json(os.path.join(server_dir, 'usercache.json'))
+    # noinspection SpellCheckingInspection
+    usercache = load_json(os.path.join(server_dir, "usercache.json"))
     for i in usercache:
-        if i.get('name', None) == player:
-            uuid = i.get('uuid', None)
+        if i.get("name", None) == player:
+            uuid = i.get("uuid", None)
             return uuid
     return None
 
+
 def check_uuid_valid(uuid: str) -> bool:
     uuid_regex = re.compile(
-        r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+        r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
     )
     return bool(uuid_regex.match(uuid))
 
+
 def get_player(uuid: str) -> Optional[str]:
-    usercache = load_json(os.path.join(server_dir, 'usercache.json'))
+    # noinspection SpellCheckingInspection
+    usercache = load_json(os.path.join(server_dir, "usercache.json"))
     for i in usercache:
-        if i.get('uuid', None) == uuid:
-            player = i.get('name', None)
+        if i.get("uuid", None) == uuid:
+            player = i.get("name", None)
             return player
     return None

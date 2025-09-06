@@ -1,8 +1,8 @@
 import os
 
-from mcdreforged.api.all import *
+from mcdreforged.api.all import ServerInterface
 from mooling_teleport.utils import get_uuid
-from .api import TeleportType
+from mooling_teleport.modules.api import TeleportType
 
 psi = ServerInterface.psi()
 config_dir = psi.get_data_folder()
@@ -16,7 +16,7 @@ class GetDirectory:
         target_path = os.path.join(config_dir, self.module.value)
         os.makedirs(target_path, exist_ok=True)
         return target_path
-    
+
     def private(self, player: str) -> str:
         uuid = get_uuid(player)
         if uuid is not None:
