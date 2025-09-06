@@ -1,6 +1,6 @@
 {
     "id": "mooling_teleport",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "name": "MoolingTeleport",
     "description": {
       "en_us": "A teleport plugin written by Mooling0602.",
@@ -12,5 +12,7 @@
       "mcdreforged": ">=2.0",
       "more_command_nodes": ">=1.0"
     },
-    "entrypoint": "mooling_teleport.entry"
+    "entrypoint": "mooling_teleport.entry",
+    "resources": ["lang"],
+    "modperm": true
 }
